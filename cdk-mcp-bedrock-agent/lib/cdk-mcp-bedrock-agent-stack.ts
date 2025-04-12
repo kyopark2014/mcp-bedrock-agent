@@ -319,10 +319,10 @@ export class CdkMcpBedrockAgentStack extends cdk.Stack {
     
     const mcp_config = JSON.stringify(`{
   "mcpServers": {
-    "playwright": {
-      "command": "npx",
+    "search": {
+      "command": "python",
       "args": [
-        "@playwright/mcp@latest"
+        "application/mcp.py"
       ]
     }
   }

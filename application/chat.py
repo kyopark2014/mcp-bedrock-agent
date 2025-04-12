@@ -10,7 +10,7 @@ import info
 import PyPDF2
 import csv
 import utils
-import mcp_server
+import mcp_client
 
 from io import BytesIO
 from PIL import Image
@@ -854,5 +854,5 @@ def get_image_summarization(object_name, prompt, st):
 ############################################################# 
 
 async def run_bedrock_agent_with_mcp(text, st):                
-    await mcp_server.run(text, mcp_config, st)
+    await mcp_client.run(text, mcp_config, st)
 
