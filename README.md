@@ -44,6 +44,14 @@ Inline Agent에 필요한 패키지는 아래와 같습니다.
 pip install opentelemetry-api openinference-instrumentation-langchain opentelemetry-exporter-otlp
 ```
 
+필요한 패키지를 설치합니다.
+
+```python
+pip install pandas aioboto3
+```
+
+
+
 ## Reference
 
 [Running MCP-Based Agents (Clients & Servers) on AWS](https://community.aws/content/2v8AETAkyvPp9RVKC4YChncaEbs/running-mcp-based-agents-clients-servers-on-aws)
