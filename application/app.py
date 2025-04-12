@@ -86,17 +86,7 @@ with st.sidebar:
     st.subheader("⚙️ MCP Config")
 
     config = utils.load_config()
-    # mcp = json.loads(config["mcp"])
-    mcp = {
-  "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": [
-        "@playwright/mcp@latest"
-      ]
-    }
-  }
-}    
+    mcp = json.loads(config["mcp"])
     logger.info(f"mcp: {mcp}")
     if mcp:
         mcp_config = st.text_area(
