@@ -1,5 +1,7 @@
 # Bedrock Inline Agent
 
+Bedrock inline agent를 이용하면 동적으로 agent를 생성하여 활용할 수 있습니다.
+
 ## Multi-agent 
 
 [Bedrock Inline Agent](https://awslabs.github.io/multi-agent-orchestrator/agents/built-in/bedrock-inline-agent/)와 같이 multi agent를 구현할 수 있습니다. 
