@@ -79,29 +79,10 @@ path = config["sharing_url"] if "sharing_url" in config else None
 if path is None:
     raise Exception ("No Sharing URL")
 
-agent_role_arn = config["agent_role_arn"] if "agent_role_arn" in config else None
-if agent_role_arn is None:
-    raise Exception ("No agent role")
-
-s3_arn = config["s3_arn"] if "s3_arn" in config else None
-if s3_arn is None:
-    raise Exception ("No S3 ARN")
-
 s3_bucket = config["s3_bucket"] if "s3_bucket" in config else None
 if s3_bucket is None:
     raise Exception ("No storage!")
 
-lambda_tools_arn = config["lambda-tools"] if "lambda-tools" in config else None
-if lambda_tools_arn is None:
-    raise Exception ("No Lambda Tool")
-
-parsingModelArn = f"arn:aws:bedrock:{region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
-embeddingModelArn = f"arn:aws:bedrock:{region}::foundation-model/amazon.titan-embed-text-v2:0"
-
-knowledge_base_name = projectName
-
-prompt_flow_name = 'aws-bot'
-rag_prompt_flow_name = 'rag-prompt-flow'
 knowledge_base_name = projectName
 
 numberOfDocs = 4

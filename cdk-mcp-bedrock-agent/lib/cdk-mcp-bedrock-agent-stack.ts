@@ -318,15 +318,15 @@ export class CdkMcpBedrockAgentStack extends cdk.Stack {
     });        
     
     const mcp_config = JSON.stringify(`{
-      "mcpServers": {
-        "playwright": {
-          "command": "npx",
-          "args": [
-            "@playwright/mcp@latest"
-          ]
-        }
-      }
-    }`)
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    }
+  }
+}`)
     const environment = {
       "projectName": projectName,
       "accountId": accountId,
