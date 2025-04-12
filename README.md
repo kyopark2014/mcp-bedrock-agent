@@ -38,10 +38,10 @@ git clone https://github.com/awslabs/amazon-bedrock-agent-samples.git
 
 ### 실행하기
 
-필요한 패키지는 아래와 같습니다.
+Inline Agent에 필요한 패키지는 아래와 같습니다.
 
 ```python
-pip install opentelemetry-api
+pip install opentelemetry-api openinference-instrumentation-langchain opentelemetry-exporter-otlp
 ```
 
 ## Reference
