@@ -5,7 +5,7 @@
 아래와 같이 mcp-bedrock-agent을 다운로드 합니다. 
 
 ```text
-pip install https://github.com/kyopark2014/mcp-bedrock-agent
+git clone https://github.com/kyopark2014/mcp-bedrock-agent
 ```
 
 아래처럼 빌드합니다.
