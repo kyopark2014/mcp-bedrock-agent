@@ -36,6 +36,13 @@ git clone https://github.com/awslabs/amazon-bedrock-agent-samples.git
 
 ![image](https://github.com/user-attachments/assets/c28c27cc-f87a-4b7d-8630-238e2ea08922)
 
+### 실행하기
+
+필요한 패키지는 아래와 같습니다.
+
+```python
+pip install opentelemetry-api
+```
 
 ## Reference
 
