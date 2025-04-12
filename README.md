@@ -20,7 +20,7 @@ python -m pip install -e .
 이제 아래처럼 동작을 테스트 할 수 있습니다. 
 
 ```text
-cd ../application
+cd ../../examples
 python hello_world.py
 ```
 
