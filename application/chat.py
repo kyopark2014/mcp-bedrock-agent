@@ -121,9 +121,10 @@ client = boto3.client(
     region_name=bedrock_region
 )  
 
-def update(modelName, debugMode, st):    
+mcp_config = ""
+def update(modelName, debugMode, mcp):    
     global model_name, model_id, model_type, debug_mode
-    global models
+    global models, mcp_config
     
     if model_name != modelName:
         model_name = modelName
@@ -136,6 +137,9 @@ def update(modelName, debugMode, st):
     if debug_mode != debugMode:
         debug_mode = debugMode
         logger.info(f"debug_mode: {debug_mode}")
+
+    mcp_config = mcp
+    logger.info(f"mcp_config: {mcp_config}")
 
 def clear_chat_history():
     memory_chain = []
@@ -866,13 +870,98 @@ def get_image_summarization(object_name, prompt, st):
 ####################### Bedrock Agent #######################
 # Bedrock Agent with MCP
 ############################################################# 
+
+from mcp import StdioServerParameters
+from InlineAgent.tools import MCPStdio
+from InlineAgent.action_group import ActionGroup
+from InlineAgent.agent import InlineAgent
+
+def load_mcp_server_parameters():
+    mcp_json = json.loads(mcp_config)
+    logger.info(f"mcp_json: {mcp_json}")
+
+    mcpServers = mcp_json.get("mcpServers")
+    logger.info(f"mcpServers: {mcpServers}")
+
+    command = ""
+    args = []
+    env = ""
+    if mcpServers is not None:
+        for server in mcpServers:
+            logger.info(f"server: {server}")
+
+            config = mcpServers.get(server)
+            logger.info(f"config: {config}")
+
+            if "command" in config:
+                command = config["command"]
+            if "args" in config:
+                args = config["args"]
+            if "env" in config:
+                env = config["env"]
+
+            break
+
+    if env:
+        return StdioServerParameters(
+            command=command,
+            args=args,
+            env=env
+        )
+    else:
+        return StdioServerParameters(
+            command=command,
+            args=args
+        )
+
+def load_multiple_mcp_server_parameters():
+    logger.info(f"mcp_config: {mcp_config}")
+
+    mcp_json = json.loads(mcp_config)
+    logger.info(f"mcp_json: {mcp_json}")
+
+    mcpServers = mcp_json.get("mcpServers")
+    logger.info(f"mcpServers: {mcpServers}")
+  
+    server_info = {}
+    if mcpServers is not None:
+        command = ""
+        args = []
+        for server in mcpServers:
+            logger.info(f"server: {server}")
+
+            config = mcpServers.get(server)
+            logger.info(f"config: {config}")
+
+            if "command" in config:
+                command = config["command"]
+            if "args" in config:
+                args = config["args"]
+            if "env" in config:
+                env = config["env"]
+
+                server_info[server] = {
+                    "command": command,
+                    "args": args,
+                    "env": env,
+                    "transport": "stdio"
+                }
+            else:
+                server_info[server] = {
+                    "command": command,
+                    "args": args,
+                    "transport": "stdio"
+                }
+    logger.info(f"server_info: {server_info}")
+
+    return server_info
+
 # import asyncio
 # import playwright
-# async def run_bedrock_agent_with_mcp(text, st):
-#     asyncio.run(playwright.run_playwright_agent(text))
+# def run_bedrock_agent_with_mcp(text, st):
+#     asyncio.run(playwright.run_playwright_agent(text, st))
 
-def run_bedrock_agent_with_mcp(text, st):
-    return "ok"
+
 # mcp_config = {
 #   "mcpServers": {
 #     "awslabs.cost-analysis-mcp-server": {
@@ -882,11 +971,11 @@ def run_bedrock_agent_with_mcp(text, st):
 #         "FASTMCP_LOG_LEVEL": "ERROR",
 #         "AWS_PROFILE": "default"
 #       },
-#       "disabled": False,
-#       "autoApprove": []
 #     }
 #   }
 # }
+
+
 # def load_mcp_server_parameters():
 #     mcp_json = json.loads(mcp_config)
 #     logger.info(f"mcp_json: {mcp_json}")
@@ -920,32 +1009,39 @@ def run_bedrock_agent_with_mcp(text, st):
 # server_params = load_mcp_server_parameters()
 # logger.info(f"server_params: {server_params}")
 
-# async def run_bedrock_agent_with_mcp(text, st):
-#     cost_client = await MCPStdio.create(server_params=server_params)
+server_params = StdioServerParameters(
+    command="npx",
+    args=["@playwright/mcp@latest"],
+)
 
-#     try:
-#         # Define an action group
-#         cost_action_group = ActionGroup(
-#             name="CostActionGroup",
-#             description="retrieve cost analysis data collection",
-#             mcp_clients=[cost_client],
-#         )
+async def run_bedrock_agent_with_mcp(text, st):
+    server_params = load_mcp_server_parameters()
 
-#         # Invoke agent
-#         result = await InlineAgent(
-#             foundation_model="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
-#             instruction="""You are a friendly assistant that is responsible for resolving user queries. """,
-#             agent_name="cost_agent",
-#             action_groups=[cost_action_group],
-#         ).invoke(
-#             input_text=text
-#         )
+    cost_client = await MCPStdio.create(server_params=server_params)
 
-#         logger.info(f"result: {result}")
-#         st.markdown(result)
+    try:
+        # Define an action group
+        cost_action_group = ActionGroup(
+            name="CostActionGroup",
+            description="retrieve cost analysis data collection",
+            mcp_clients=[cost_client],
+        )
 
-#     finally:
-#         await cost_client.cleanup()
+        # Invoke agent
+        result = await InlineAgent(
+            foundation_model="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+            instruction="""You are a friendly assistant that is responsible for resolving user queries. """,
+            agent_name="cost_agent",
+            action_groups=[cost_action_group],
+        ).invoke(
+            input_text=text
+        )
+
+        logger.info(f"result: {result}")
+        st.markdown(result)
+
+    finally:
+        await cost_client.cleanup()
                 
-#     return result, ""
+    return result, ""
 

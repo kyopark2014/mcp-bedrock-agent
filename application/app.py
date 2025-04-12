@@ -1,7 +1,7 @@
 import streamlit as st 
 import chat
 import utils
-
+import json
 import cost_analysis as cost
 
 # logging
@@ -82,7 +82,33 @@ with st.sidebar:
     debugMode = 'Enable' if select_debugMode else 'Disable'
     #print('debugMode: ', debugMode)
 
-    chat.update(modelName, debugMode, st)
+    # MCP Config JSON 입력
+    st.subheader("⚙️ MCP Config")
+
+    config = utils.load_config()
+    # mcp = json.loads(config["mcp"])
+    mcp = {
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    }
+  }
+}    
+    logger.info(f"mcp: {mcp}")
+    if mcp:
+        mcp_config = st.text_area(
+            "MCP 설정을 JSON 형식으로 입력하세요",
+            value=mcp,
+            height=150
+        )
+        if mcp_config != mcp:
+            mcp = mcp_config
+            chat.update(modelName, debugMode, mcp)
+
+    chat.update(modelName, debugMode, mcp)
 
     st.success(f"Connected to {modelName}", icon="💚")
     clear_button = st.button("대화 초기화", key="clear")
@@ -164,8 +190,6 @@ if uploaded_file is not None and clear_button==False:
         file_url = chat.upload_to_s3(uploaded_file.getvalue(), file_name)
         logger.info(f"file_url: {file_url}")
 
-        kb.sync_data_source()  # sync uploaded files
-            
         status = f'선택한 "{file_name}"의 내용을 요약합니다.'
         # my_bar = st.sidebar.progress(0, text=status)
         
@@ -244,16 +268,19 @@ if prompt := st.chat_input("메시지를 입력하세요."):
         elif mode == "Agent (MCP)":
             sessionState = ""
             with st.status("thinking...", expanded=True, state="running") as status:
-                response, image_url = chat.run_bedrock_agent_with_mcp(prompt, st)
-                st.write(response)
-                logger.info(f"response: {response}")
+                import asyncio
+
+                asyncio.run(chat.run_bedrock_agent_with_mcp(prompt, st))
+                # response, image_url = chat.run_bedrock_agent_with_mcp(prompt, st)
+                # st.write(response)
+                # logger.info(f"response: {response}")
                 
-                st.session_state.messages.append({
-                    "role": "assistant", 
-                    "content": response,
-                    "images": image_url if image_url else []
-                })
-                chat.save_chat_history(prompt, response)                    
+                # st.session_state.messages.append({
+                #     "role": "assistant", 
+                #     "content": response,
+                #     "images": image_url if image_url else []
+                # })
+                # chat.save_chat_history(prompt, response)                    
 
         elif mode == '번역하기':
             response = chat.translate_text(prompt)
