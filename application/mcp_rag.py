@@ -39,7 +39,7 @@ multi_region = "Enable"
 model_name = "Claude 3.5 Haiku"
 knowledge_base_name = projectName
 
-def retrieve_knowledge_base(query):
+def retrieve(query):
     lambda_client = boto3.client(
         service_name='lambda',
         region_name=bedrock_region
@@ -72,3 +72,17 @@ def retrieve_knowledge_base(query):
         print(f"error message: {err_msg}")       
 
     return payload['response'], []   
+
+def retrieve_knowledge_base(query) -> str:
+    """
+    Retrieve the knowledge base
+    Parameters:
+        query: the query to search the knowledge base
+    """    
+    responses = retrieve(query)
+
+    result=""
+    for response in responses:
+        result += f"{response}\n"
+    
+    return result
