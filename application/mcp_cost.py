@@ -15,8 +15,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger("mcp-cost")
 
-def get_cost_analysis(days: str=30, region: str="us-west-2"):
-    """Cost analysis data collection"""
+def get_cost_analysis(days: int=30, region: str="us-west-2"):
+    """
+    Cost analysis data collection
+    Parameters:
+        days: the period of the data, e.g., 30
+        region: The region of aws infrastructure, e.g., us-west-2
+    """    
     try:
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days)
@@ -92,11 +97,14 @@ def get_cost_analysis(days: str=30, region: str="us-west-2"):
         daily_costs_df = pd.DataFrame(daily_costs)
         logger.info(f"Daily Cost (df): {daily_costs_df}")
         
-        return {
-            'service_costs': service_costs,
-            'region_costs': region_costs,
-            'daily_costs': daily_costs_df
-        }
+        # return json.dumps({
+        #     'service_costs': service_costs,
+        #     'region_costs': region_costs,
+        #     'daily_costs': daily_costs_df
+        # })
+        result = f"service_costs: {service_costs}\n\nregion_costs: {region_costs}\n\ndaily_costs: {daily_costs}"
+        logger.info(f"result: {result}")
+        return result
         
     except Exception as e:
         print(f"Error in cost analysis: {str(e)}")

@@ -19,7 +19,14 @@ async def list_groups(
     prefix: Optional[str] = None,
     region: Optional[str] = 'us-west-2'
 ) -> str:
-    """List available CloudWatch log groups."""
+    """
+    List available CloudWatch log groups.
+    Parameters:
+        prefix: the prefix of bucket  
+        region: The region of aws infrastructure, e.g. us-west-2
+    """
+
+    logger.info(f"list_groups: prefix={prefix}, region={region}")
 
     log_client = boto3.client(
         service_name='logs',
@@ -34,20 +41,30 @@ async def list_groups(
     log_groups = response.get("logGroups", [])
 
     # Format the response
-    formatted_groups = []
+    # formatted_groups = []
+    # for group in log_groups:
+    #     formatted_groups.append(
+    #         {
+    #             "logGroupName": group.get("logGroupName"),
+    #             "creationTime": group.get("creationTime"),
+    #             "storedBytes": group.get("storedBytes"),
+    #         }
+    #     )
+
+    # response_json = json.dumps(formatted_groups, ensure_ascii=True)
+    # logger.info(f"response: {response_json}")
+
+    # return response_json
+
+    result = ""
     for group in log_groups:
-        formatted_groups.append(
-            {
-                "logGroupName": group.get("logGroupName"),
-                "creationTime": group.get("creationTime"),
-                "storedBytes": group.get("storedBytes"),
-            }
-        )
+        result += f"logGroupName: {group.get('logGroupName')}\n"
+        result += f"creationTime: {group.get('creationTime')}\n"
+        result += f"storedBytes: {group.get('storedBytes')}\n\n"
 
-    response_json = json.dumps(formatted_groups, ensure_ascii=True)
-    logger.info(f"response: {response_json}")
+    logger.info(f"response: {result}")
 
-    return response_json
+    return result
 
 def _parse_relative_time(time_str: str) -> Optional[int]:
     """Parse a relative time string into a timestamp."""
@@ -86,13 +103,20 @@ async def get_logs(
     logStreamName: Optional[str] = None,
     startTime: Optional[str] = None,
     endTime: Optional[str] = None,
-    filterPattern: Optional[str] = None,
     region: Optional[str] = 'us-west-2'
 ) -> str:
-    """Get CloudWatch logs from a specific log group and stream."""
+    """
+    Get CloudWatch logs from a specific log group and stream.
+    Parameters:
+        logGroupName: the name of log group
+        logStreamName: the stream name of log
+        startTime: start time of the log
+        endTime: end time of the log
+        region: the region name of aws
+    """
     logger.info(
         f"Getting CloudWatch logs for group: {logGroupName}, stream: {logStreamName}, "
-        f"startTime: {startTime}, endTime: {endTime}, filterPattern: {filterPattern}, "
+        f"startTime: {startTime}, endTime: {endTime}"
         f"region: {region}"
     )
 
@@ -118,9 +142,6 @@ async def get_logs(
     if logStreamName:
         kwargs["logStreamNames"] = [logStreamName]
 
-    if filterPattern:
-        kwargs["filterPattern"] = filterPattern
-
     if start_time_ms:
         kwargs["startTime"] = start_time_ms
 
@@ -132,7 +153,28 @@ async def get_logs(
     events = response.get("events", [])
 
     # Format the response
-    formatted_events = []
+    # formatted_events = []
+    # for event in events:
+    #     timestamp = event.get("timestamp")
+    #     if timestamp:
+    #         try:
+    #             timestamp = datetime.fromtimestamp(timestamp / 1000).isoformat()
+    #         except Exception:
+    #             timestamp = str(timestamp)
+
+    #     formatted_events.append(
+    #         {
+    #             "timestamp": timestamp,
+    #             "message": event.get("message"),
+    #             "logStreamName": event.get("logStreamName"),
+    #         }
+    #     )    
+
+    # response_json = json.dumps(formatted_events, ensure_ascii=True, default=str)
+    # logger.info(f"response: {response_json}")
+    # return response_json
+
+    result = ""
     for event in events:
         timestamp = event.get("timestamp")
         if timestamp:
@@ -141,14 +183,8 @@ async def get_logs(
             except Exception:
                 timestamp = str(timestamp)
 
-        formatted_events.append(
-            {
-                "timestamp": timestamp,
-                "message": event.get("message"),
-                "logStreamName": event.get("logStreamName"),
-            }
-        )    
+        result += f"timestamp: {timestamp}\n"
+        result += f"message: {event.get('message')}\n"
+        result += f"logStreamName: {event.get('logStreamName')}\n\n"
 
-    response_json = json.dumps(formatted_events, ensure_ascii=True, default=str)
-    logger.info(f"response: {response_json}")
-    return response_json
+    return result

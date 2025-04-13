@@ -2,11 +2,16 @@ import logging
 import sys
 import json
 import datetime
+import mcp_log as log
+import mcp_cost as cost
+import mcp_rag as rag
+import mcp_s3 as storage
 
 from mcp import StdioServerParameters
 from InlineAgent.tools import MCPStdio
 from InlineAgent.action_group import ActionGroup
 from InlineAgent.agent import InlineAgent
+# from InlineAgent.knowledge_base import KnowledgeBase
 
 logging.basicConfig(
     level=logging.INFO,  # Default to INFO level
@@ -107,17 +112,27 @@ def get_time() -> dict:
     #return {"time": now.strftime("%H:%M:%S")}
     return now.strftime("%H:%M:%S")
 
+# restaurant_kb = KnowledgeBase(
+#     name="restaurant-kb",
+#     description="Use this knowledgebase to get information about restaurants menu.",
+#     additional_props={
+#         "retrievalConfiguration": {"vectorSearchConfiguration": {"numberOfResults": 5}}
+#     },
+# )
+
+import uuid
+session_id = f"session-{str(uuid.uuid4())}"
 async def run(text, mcp_config, st):
     server_params = load_mcp_server_parameters(mcp_config)
 
-    cost_client = await MCPStdio.create(server_params=server_params)
+    tool_client = await MCPStdio.create(server_params=server_params)
 
     try:
         # Define an action group
-        cost_action_group = ActionGroup(
-            name="CostActionGroup",
-            description="retrieve cost analysis data collection",
-            mcp_clients=[cost_client],
+        tool_action_group = ActionGroup(
+            name="ToolActionGroup",
+            description="retrieve information using tools",
+            mcp_clients=[tool_client],
         )
 
         time_group = ActionGroup(
@@ -126,20 +141,69 @@ async def run(text, mcp_config, st):
             tools=[get_time],
         )
 
+        cost_group = ActionGroup(
+            name="costService",
+            description="tools for AWS",
+            tools=[cost.get_cost_analysis],
+        )
+
+        list_log_group = ActionGroup(
+            name="ListLogService",
+            description="earn the list of log groups on AWS",
+            tools=[log.list_groups],
+        )
+
+        get_log_group = ActionGroup(
+            name="GetLogService",
+            description="get the log of the group on AWS",
+            tools=[log.get_logs],
+        )
+
+        list_bucket_group = ActionGroup(
+            name="ListBucketService",
+            description="list the buckets on AWS",
+            tools=[storage.list_buckets],
+        )
+
+        list_object_group = ActionGroup(
+            name="ListObjectService",
+            description="list the objects in the bucket",
+            tools=[storage.list_objects],
+        )
+        
         # Invoke agent
         result = await InlineAgent(
             foundation_model="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
             instruction="""You are a friendly assistant that is responsible for resolving user queries. """,
-            agent_name="cost_agent",
-            action_groups=[cost_action_group, time_group],
+            agent_name="tool_agent",
+            #action_groups=[tool_action_group, time_group, aws_group],
+            action_groups=[
+                tool_action_group, 
+                time_group, 
+                cost_group, 
+                list_log_group, 
+                get_log_group, 
+                list_bucket_group, 
+                list_object_group
+            ],
         ).invoke(
-            input_text=text
+            input_text=text,
+            enable_trace = True,
+            add_citation=True,
+            session_id=session_id
         )
 
         logger.info(f"result: {result}")
         st.markdown(result)
 
+        image_url = []
+        st.session_state.messages.append({
+            "role": "assistant", 
+            "content": result,
+            "images": image_url if image_url else []
+        })
+
     finally:
-        await cost_client.cleanup()
+        await tool_client.cleanup()
                 
     return result, ""
