@@ -1,6 +1,6 @@
 # MCP를 이용해 Bedrock Agent 이용하기
 
-Amazon의 Bedrock agent는 완전관리형 Agent 호스팅 서비스로 인프라 관리에 대한 부담없이 편리하게 agent를 이용할 수 있습니다. Bedrock agent에서 MCP를 이용하기 위해서는 [아래 그림](https://github.com/awslabs/amazon-bedrock-agent-samples/tree/main/src/InlineAgent)과 같이 InlineAgent SDK를 이용합니다. 아래와 같이 MCP는 애플리케이션과 함께 있으면서 tools, resources에 대한 접근을 위한 표준 인터페이스를 제공합니다. 
+Amazon의 Bedrock agent는 완전관리형 Agent 호스팅 서비스로서, 인프라 관리에 대한 부담없이 편리하게 agent를 이용할 수 있도록 도와줍니다. 이러한 Bedrock agent에서 MCP를 이용하기 위해서는 [아래 그림](https://github.com/awslabs/amazon-bedrock-agent-samples/tree/main/src/InlineAgent)과 같이 InlineAgent SDK를 이용합니다. MCP를 이용하면, 생성형 AI 애플리케이션에서 각종 tools, resources, prompts에 대한 접근을 용이하게 할 수 있습니다. 
 
 <img src="https://github.com/user-attachments/assets/3641a558-87af-4060-ad25-15fa9b8227aa" width="600">
 
@@ -8,15 +8,15 @@ Amazon의 Bedrock agent는 완전관리형 Agent 호스팅 서비스로 인프�
 
 [InlineAgent](https://github.com/awslabs/amazon-bedrock-agent-samples/tree/main/src/InlineAgent#setup) SDK는 [Amazon Web Services - Labs](https://github.com/awslabs)에서 오픈소스로 제공합니다. 
 
-### 사용 준비
+### 사용 방법
 
-아래와 같이 mcp-bedrock-agent을 다운로드 합니다. 
+아래와 같이 mcp-bedrock-agent을 다운로드 합니다. 이 github에서는 [InlineAgent](https://github.com/awslabs/amazon-bedrock-agent-samples/tree/main/src/InlineAgent#setup)을 포함하고 있습니다.
 
 ```text
 git clone https://github.com/kyopark2014/mcp-bedrock-agent
 ```
 
-아래처럼 빌드합니다.
+아래처럼 venv 환경에서 사용을 준비합니다.
 
 ```text
 cd mcp-bedrock-agent/InlineAgent
@@ -25,7 +25,7 @@ source .venv/bin/activate
 python -m pip install -e .
 ```
 
-이제 아래처럼 동작을 테스트 할 수 있습니다. 
+설치가 다 되면, 아래처럼 동작을 테스트하여 정상동작 여부를 확인합니다. 
 
 ```text
 cd ../../examples
@@ -34,7 +34,7 @@ python hello_world.py
 
 ### Inline Agent SDK 업데이트
 
-[InlineAgent](https://github.com/awslabs/amazon-bedrock-agent-samples/tree/main/src/InlineAgent#setup)을 참조하여 아래와 같이 InlineAgent를 업데이트 할 수 있습니다. 먼저 github을 다운로드합니다.
+[InlineAgent SDK](https://github.com/awslabs/amazon-bedrock-agent-samples/tree/main/src/InlineAgent#setup)의 새 버전이로 배포되면 아래와 같이 업데이트 합니다. 
 
 ```python
 git clone https://github.com/awslabs/amazon-bedrock-agent-samples.git
@@ -46,13 +46,13 @@ git clone https://github.com/awslabs/amazon-bedrock-agent-samples.git
 
 ### 실행하기
 
-Inline Agent에 필요한 패키지는 아래와 같습니다.
+Inline Agent SDK 동작에 필요한 패키지는 아래와 같습니다.
 
 ```python
 pip install opentelemetry-api openinference-instrumentation-langchain opentelemetry-exporter-otlp
 ```
 
-필요한 패키지를 설치합니다.
+MCP와 관련된 패키지도 아래와 같이 설치합니다. 
 
 ```python
 pip install pandas aioboto3 langchain_experimental
@@ -117,7 +117,7 @@ tool_action_group = ActionGroup(
 )
 ```
 
-이때 추가로 action group을 지정할 수 있습니다. 아래와 같이 bucket 리스트를 조회하는 list_buckets를 함수로 정의한 후에 action group의 tools에 등록합니다. InlineAgent SDK에서는 tool의 리턴값으로 string을 사용하고 있으므로 list_buckets에서는 string을 리턴합니다. 또한 list_buckets의 doc string에는 tool의 설명과 함께 "Parameters"로 입력값을 정의하여야 합니다. Bedrock agent에서는 tool의 입력 파라미터가 5개 이내로 제한됩니다.
+로컬 환경에서 새로운 action group을 생성할 수 있습니다. 아래와 같이 bucket 리스트를 조회하는 list_buckets를 action group의 tools에 등록할 수 있습니다. InlineAgent SDK에서는 tool의 리턴값으로 string만을 허용하므로, list_buckets 동작으로 얻어진 json형태의 결과를 string을 변환합니다. 또한 list_buckets의 doc string에는 tool의 설명과 함께 "Parameters"로 입력값들을 정의하여야 합니다. Bedrock agent에서는 tool의 입력 파라미터로 5개 이내만 사용하도록 제한을 두고 있습니다. 
 
 ```python
 async def list_buckets(
@@ -177,9 +177,6 @@ result = await InlineAgent(
 "S3의 bucket들의 사용 현황을 분석해주세요."와 같이 입력하면 아래와 같이 현재 S3의 현황을 정리해서 볼 수 있습니다.
 
 <img src="https://github.com/user-attachments/assets/c913e9fe-f6f6-46a9-b96b-36c6beea7340" width="700">
-
-
-![image](https://github.com/user-attachments/assets/ad0774e4-b423-44ba-bd94-6baaa73062dc)
 
 "지난 3개월의 AWS 리소스 사용 내역을 분석해주세요."라고 입력하면 AWS의 사용량에 대한 분석 결과를 알수 있습니다.
 
