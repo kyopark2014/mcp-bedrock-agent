@@ -1,6 +1,12 @@
 # MCP를 이용해 Bedrock Agent 이용하기
 
-## Inline Agent 준비
+Bedrock agent에서 MCP를 이용하기 위해서는 [아래 그림](https://github.com/awslabs/amazon-bedrock-agent-samples/tree/main/src/InlineAgent)과 같이 InlineAgent SDK를 이용합니다. 
+
+<img src="https://github.com/user-attachments/assets/3641a558-87af-4060-ad25-15fa9b8227aa" width="600">
+
+## InlineAgent SDK의 준비
+
+### 사용 준비
 
 아래와 같이 mcp-bedrock-agent을 다운로드 합니다. 
 
