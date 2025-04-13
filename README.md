@@ -6,6 +6,8 @@ Bedrock agent에서 MCP를 이용하기 위해서는 [아래 그림](https://git
 
 ## InlineAgent SDK의 준비
 
+[InlineAgent](https://github.com/awslabs/amazon-bedrock-agent-samples/tree/main/src/InlineAgent#setup) SDK는 [Amazon Web Services - Labs](https://github.com/awslabs)에서 오픈소스로 제공합니다. 
+
 ### 사용 준비
 
 아래와 같이 mcp-bedrock-agent을 다운로드 합니다. 
@@ -55,6 +57,131 @@ pip install opentelemetry-api openinference-instrumentation-langchain openteleme
 ```python
 pip install pandas aioboto3 langchain_experimental
 ```
+
+## MCP 활용하기
+
+MCP 설정은 아래와 같은 json 포맷을 활용합니다. 아래는 mcp_config의 예입니다.
+
+```java
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    }
+  }
+}
+```
+
+아래와 같이 mcp_config로부터 mcp client를 생성합니다. 
+
+```python
+from mcp import StdioServerParameters
+mcpServers = mcp_json.get("mcpServers")
+
+mcp_clients = []
+for server in mcpServers:
+    config = mcpServers.get(server)
+
+    if "command" in config:
+        command = config["command"]
+    if "args" in config:
+        args = config["args"]
+    if "env" in config:
+        env = config["env"]
+        
+        server_params = StdioServerParameters(
+            command=command,
+            args=args,
+            env=env
+        )
+    else:
+        server_params = StdioServerParameters(
+            command=command,
+            args=args
+        )
+    tool_client = await MCPStdio.create(server_params=server_params)
+    mcp_clients.append(tool_client)
+```
+
+이제 아래와 같이 action group을 생성합니다. 
+
+```python
+from InlineAgent.action_group import ActionGroup
+tool_action_group = ActionGroup(
+    name="ToolActionGroup",
+    description="retrieve information using tools",
+    mcp_clients=mcp_clients,
+)
+```
+
+이때 추가로 action group을 지정할 수 있습니다. 아래와 같이 bucket 리스트를 조회하는 list_buckets를 함수로 정의한 후에 action group의 tools에 등록합니다. InlineAgent SDK에서는 tool의 리턴값으로 string을 사용하고 있으므로 list_buckets에서는 string을 리턴합니다. 또한 list_buckets의 doc string에는 tool의 설명과 함께 "Parameters"로 입력값을 정의하여야 합니다. 
+
+```python
+async def list_buckets(
+    region: Optional[str] = "us-west-2"
+) -> List[dict]:
+    """
+    List S3 buckets using async client with pagination
+    Parameters:
+        max_buckets: the number of buckets 
+        region: the region of aws infrastructure, e.g. us-west-2
+    """
+    async with session.client('s3', region_name=region) as s3:
+        response = await s3.list_buckets()
+        buckets = response.get('Buckets', [])
+        result = "" 
+        for bucket in buckets:
+            result += f"Name: {bucket['Name']}, CreationDate: {bucket['CreationDate']}\n"
+        return result        
+
+list_bucket_group = ActionGroup(
+    name="ListBucketService",
+    description="list the buckets on AWS",
+    tools=[list_buckets],
+)
+```
+
+이제 정의한 action group들을 아래와 같이 InlineAgent에 등록하여 사용할 수 있습니다. 입력은 input_text을 이용하고, enable_trace로 상세한 동작을 확인할 수 있습니다. session_id을 이용하면 메모리를 활용하여 이전 conversation을 응답에 활용할 수 있습니다.  
+
+```python
+from InlineAgent.agent import InlineAgent
+
+result = await InlineAgent(
+    foundation_model="us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+    instruction="""You are a friendly assistant that is responsible for resolving user queries. """,
+    agent_name="tool_agent",
+    action_groups=[
+        tool_action_group, 
+        cost_group, 
+        list_log_group, 
+        get_log_group, 
+        list_bucket_group, 
+        list_object_group
+    ],
+).invoke(
+    input_text=text,
+    enable_trace = True,
+    session_id=session_id
+)
+```
+
+## 실행 결과
+
+여기서 사용한 config.json의 playwright을 이용하면 아래와 같이 특정 url의 내용을 요약할 수 있습니다. 
+
+<img src="https://github.com/user-attachments/assets/90e04264-7b1f-4ff3-9aae-35b35b66af3f" width="700">
+
+"S3의 bucket 리스별로 용도를 정리해주세요."와 같이 입력하면 아래와 같이 현재 S3의 용도를 정리해서 볼 수 있습니다.
+
+<img src="https://github.com/user-attachments/assets/c973cc17-6316-4143-8447-fd1ff9894a12" width="700">
+
+"지난 3개월의 AWS 리소스 사용 내역을 분석해주세요."라고 입력하면 AWS의 사용량에 대한 분석 결과를 알수 있습니다.
+
+![image](https://github.com/user-attachments/assets/6d134d3c-fc94-427d-8fba-ebbe482e3d58)
+
 
 
 
