@@ -117,7 +117,7 @@ tool_action_group = ActionGroup(
 )
 ```
 
-이때 추가로 action group을 지정할 수 있습니다. 아래와 같이 bucket 리스트를 조회하는 list_buckets를 함수로 정의한 후에 action group의 tools에 등록합니다. InlineAgent SDK에서는 tool의 리턴값으로 string을 사용하고 있으므로 list_buckets에서는 string을 리턴합니다. 또한 list_buckets의 doc string에는 tool의 설명과 함께 "Parameters"로 입력값을 정의하여야 합니다. 
+이때 추가로 action group을 지정할 수 있습니다. 아래와 같이 bucket 리스트를 조회하는 list_buckets를 함수로 정의한 후에 action group의 tools에 등록합니다. InlineAgent SDK에서는 tool의 리턴값으로 string을 사용하고 있으므로 list_buckets에서는 string을 리턴합니다. 또한 list_buckets의 doc string에는 tool의 설명과 함께 "Parameters"로 입력값을 정의하여야 합니다. Bedrock agent에서는 tool의 입력 파라미터가 5개 이내로 제한됩니다.
 
 ```python
 async def list_buckets(
