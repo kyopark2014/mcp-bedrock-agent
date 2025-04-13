@@ -157,14 +157,8 @@ async def run(text, mcp_config, st):
 
         list_bucket_group = ActionGroup(
             name="ListBucketService",
-            description="list the buckets on AWS",
-            tools=[storage.list_buckets],
-        )
-
-        list_object_group = ActionGroup(
-            name="ListObjectService",
-            description="list the objects in the bucket",
-            tools=[storage.list_objects],
+            description="retrieve the bucket information on AWS such as bucket name, object and resources.",
+            tools=[storage.list_buckets, storage.list_objects, storage.list_resources],
         )
         
         # Invoke agent
@@ -179,8 +173,7 @@ async def run(text, mcp_config, st):
                 cost_group, 
                 list_log_group, 
                 get_log_group, 
-                list_bucket_group, 
-                list_object_group
+                list_bucket_group
             ],
         ).invoke(
             input_text=text,
