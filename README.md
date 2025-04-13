@@ -1,6 +1,6 @@
 # MCP를 이용해 Bedrock Agent 이용하기
 
-Bedrock agent에서 MCP를 이용하기 위해서는 [아래 그림](https://github.com/awslabs/amazon-bedrock-agent-samples/tree/main/src/InlineAgent)과 같이 InlineAgent SDK를 이용합니다. 
+Bedrock agent에서 MCP를 이용하기 위해서는 [아래 그림](https://github.com/awslabs/amazon-bedrock-agent-samples/tree/main/src/InlineAgent)과 같이 InlineAgent SDK를 이용합니다. Amazon의 Bedrock agent는 완전관리형 Agent 호스팅 서비스로 인프라 관리없이 편리하게 agent를 이용할 수 있습니다. 아래와 같이 MCP는 애플리케이션과 함께 있으면서 tools, resources에 대한 접근을 위한 표준 인터페이스를 제공합니다. 
 
 <img src="https://github.com/user-attachments/assets/3641a558-87af-4060-ad25-15fa9b8227aa" width="600">
 
