@@ -180,7 +180,7 @@ result = await InlineAgent(
 
 "지난 3개월의 AWS 리소스 사용 내역을 분석해주세요."라고 입력하면 AWS의 사용량에 대한 분석 결과를 알수 있습니다.
 
-![image](https://github.com/user-attachments/assets/6d134d3c-fc94-427d-8fba-ebbe482e3d58)
+<img src="https://github.com/user-attachments/assets/6d134d3c-fc94-427d-8fba-ebbe482e3d58" width="700">
 
 
 
