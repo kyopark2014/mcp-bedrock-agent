@@ -174,9 +174,12 @@ result = await InlineAgent(
 
 <img src="https://github.com/user-attachments/assets/90e04264-7b1f-4ff3-9aae-35b35b66af3f" width="700">
 
-"S3의 bucket 리스별로 용도를 정리해주세요."와 같이 입력하면 아래와 같이 현재 S3의 용도를 정리해서 볼 수 있습니다.
+"S3의 bucket들의 사용 현황을 분석해주세요."와 같이 입력하면 아래와 같이 현재 S3의 현황을 정리해서 볼 수 있습니다.
 
-<img src="https://github.com/user-attachments/assets/c973cc17-6316-4143-8447-fd1ff9894a12" width="700">
+<img src="https://github.com/user-attachments/assets/c913e9fe-f6f6-46a9-b96b-36c6beea7340" width="700">
+
+
+![image](https://github.com/user-attachments/assets/ad0774e4-b423-44ba-bd94-6baaa73062dc)
 
 "지난 3개월의 AWS 리소스 사용 내역을 분석해주세요."라고 입력하면 AWS의 사용량에 대한 분석 결과를 알수 있습니다.
 
