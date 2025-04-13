@@ -45,7 +45,6 @@ def load_mcp_server_parameters(mcp_config):
                 args = config["args"]
             if "env" in config:
                 env = config["env"]
-
             break
 
     if env:
@@ -60,7 +59,7 @@ def load_mcp_server_parameters(mcp_config):
             args=args
         )
 
-def load_multiple_mcp_server_parameters(mcp_config):
+async def load_mcp_clients(mcp_config):
     logger.info(f"mcp_config: {mcp_config}")
 
     mcp_json = json.loads(mcp_config)
@@ -69,39 +68,35 @@ def load_multiple_mcp_server_parameters(mcp_config):
     mcpServers = mcp_json.get("mcpServers")
     logger.info(f"mcpServers: {mcpServers}")
   
-    server_info = {}
-    if mcpServers is not None:
-        command = ""
-        args = []
-        for server in mcpServers:
-            logger.info(f"server: {server}")
+    mcp_clients = []
+    for server in mcpServers:
+        logger.info(f"server: {server}")
 
-            config = mcpServers.get(server)
-            logger.info(f"config: {config}")
+        config = mcpServers.get(server)
+        logger.info(f"config: {config}")
 
-            if "command" in config:
-                command = config["command"]
-            if "args" in config:
-                args = config["args"]
-            if "env" in config:
-                env = config["env"]
+        if "command" in config:
+            command = config["command"]
+        if "args" in config:
+            args = config["args"]
+        if "env" in config:
+            env = config["env"]
+            
+            server_params = StdioServerParameters(
+                command=command,
+                args=args,
+                env=env
+            )
+        else:
+            server_params = StdioServerParameters(
+                command=command,
+                args=args
+            )
+        logger.info(f"server_params: {server_params}")
+        tool_client = await MCPStdio.create(server_params=server_params)
+        mcp_clients.append(tool_client)
 
-                server_info[server] = {
-                    "command": command,
-                    "args": args,
-                    "env": env,
-                    "transport": "stdio"
-                }
-            else:
-                server_info[server] = {
-                    "command": command,
-                    "args": args,
-                    "transport": "stdio"
-                }
-    logger.info(f"server_info: {server_info}")
-
-    return server_info
-
+    return mcp_clients
 
 def get_time() -> dict:
     """Get the current time"""
@@ -123,16 +118,17 @@ def get_time() -> dict:
 import uuid
 session_id = f"session-{str(uuid.uuid4())}"
 async def run(text, mcp_config, st):
-    server_params = load_mcp_server_parameters(mcp_config)
+    # server_params = load_mcp_server_parameters(mcp_config) # single
+    # tool_client = await MCPStdio.create(server_params=server_params)
 
-    tool_client = await MCPStdio.create(server_params=server_params)
+    mcp_clients = await load_mcp_clients(mcp_config) # multiple
 
     try:
         # Define an action group
         tool_action_group = ActionGroup(
             name="ToolActionGroup",
             description="retrieve information using tools",
-            mcp_clients=[tool_client],
+            mcp_clients=mcp_clients,
         )
 
         time_group = ActionGroup(
@@ -204,6 +200,7 @@ async def run(text, mcp_config, st):
         })
 
     finally:
-        await tool_client.cleanup()
+        for mcp_client in mcp_clients:
+            await mcp_client.cleanup()
                 
     return result, ""

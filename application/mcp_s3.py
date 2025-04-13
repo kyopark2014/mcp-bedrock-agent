@@ -56,7 +56,6 @@ def is_text_file(key: str) -> bool:
     return any(key.lower().endswith(ext) for ext in text_extensions)
 
 async def list_buckets(
-    max_buckets: Optional[int] = 5,
     region: Optional[str] = "us-west-2"
 ) -> List[dict]:
     """
@@ -73,7 +72,6 @@ async def list_buckets(
 
         buckets = response.get('Buckets', [])
 
-        #return buckets[:max_buckets]
         result = "" 
         for bucket in buckets:
             logger.info(f"bucket: {bucket['Name']}")
@@ -101,7 +99,7 @@ async def list_objects(
         response = await s3.list_objects_v2(
             Bucket=bucket_name,
             Prefix=prefix,
-            MaxKeys=max_keys
+            MaxKeys=int(max_keys)
         )
         logger.info(f"objects: {response.get('Contents')}")
 
